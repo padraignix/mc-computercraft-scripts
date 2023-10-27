@@ -117,7 +117,7 @@ function menu_bar()
   draw_line(1, 1, monX, colors.blue)
   draw_text(2, 1, "Power    Tools    Settings", colors.white, colors.blue)
   draw_line(1, 19, monX, colors.blue)
-  draw_text(2, 19, "     Reactor Control", colors.white, colors.blue)
+  draw_text(2, 19, "RCv4 - Padraignix", colors.white, colors.blue)
 end
 
 --dropdown menu for power options
@@ -309,7 +309,7 @@ function homepage()
 
     draw_text(2, 15, "FE Stored:", colors.yellow, colors.black)
     energy_stored_percent = math.floor((energy_stored/reactor.getEnergyStats().energyCapacity)*100)
-    draw_text(13, 15, energy_stored_percent.."% ("..energy_stored.." FE)", colors.white, colors.black)
+    draw_text(13, 15, energy_stored_percent.."% ("..math.floor(energy_stored)/1000.." MFE)", colors.white, colors.black)
 
 
     end
