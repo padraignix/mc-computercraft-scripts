@@ -229,7 +229,7 @@ function homepage()
     --Added in for debugging "below box"
     drawBox({monX-2, monY/2-2}, 1, monY/2, colors.lightGray)
     --Added in for debugging "right side box"
-    drawBox({math.floor(monX*0.4), monY/2-2}, math.floor(monX * 0.6) + 1, 2, colors.lightGray)
+    drawBox({math.floor(monX*0.4) -1 , monY/2-3}, math.floor(monX * 0.6) + 1, 2, colors.lightGray)
     terminal_screen()
 
     if reactor.getEnergyStats() ~= null then
