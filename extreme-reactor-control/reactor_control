@@ -839,6 +839,8 @@ function steam_mode()
   wait = read()
 end
 
+end
+
 function reset_peripherals()
   clear()
   draw_line(4, 5, 22, colors.blue)
@@ -890,7 +892,7 @@ function mon_touch()
         else
           call_homepage()
         end
-        
+ 
       else if x < 20 then
         tools_menu()
         local event, side, xPos, yPos = os.pullEvent("monitor_touch")
