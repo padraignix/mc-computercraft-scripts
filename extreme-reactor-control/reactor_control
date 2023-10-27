@@ -309,7 +309,8 @@ function homepage()
 
     draw_text(2, 15, "FE Stored:", colors.yellow, colors.black)
     energy_stored_percent = math.floor((energy_stored/reactor.getEnergyStats().energyCapacity)*100)
-    draw_text(13, 15, energy_stored_percent.."% ("..math.floor(energy_stored)/1000.." MFE)", colors.white, colors.black)
+    energy_stored_format = math.floor(energy_stored/1000)
+    draw_text(13, 15, energy_stored_percent.."% ("..energy_stored_format.." MFE)", colors.white, colors.black)
 
 
     end
