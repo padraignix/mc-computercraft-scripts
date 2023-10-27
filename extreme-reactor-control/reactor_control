@@ -94,14 +94,14 @@ end
 --background line of bg_color 
 --main line of bar_color as a percentage of minVal/maxVal
 function progress_bar(x, y, length, minVal, maxVal, bar_color, bg_color)
-  draw_line(x, y, length, bg_color) --backgoround bar
+  draw_line(x, y, length, bg_color) --background bar
   local barSize = math.floor((minVal/maxVal) * length) 
   draw_line(x, y, barSize, bar_color) --progress so far
 end
 
 --same as above but on the computer terminal
 function progress_bar_term(x, y, length, minVal, maxVal, bar_color, bg_color)
-  draw_line_term(x, y, length, bg_color) --backgoround bar
+  draw_line_term(x, y, length, bg_color) --background bar
   local barSize = math.floor((minVal/maxVal) * length) 
   draw_line_term(x, y, barSize, bar_color)  --progress so far
 end
@@ -318,7 +318,7 @@ function homepage()
     auto_rods_bool = auto_rods == "true"
     insertion_percent = reactor.getControlRodLevel(0)
 
-    if reactor.getEnergyStats() == null then
+    if reactor.getEnergyStats() ~= null then
       draw_text(2, 16, "Control Rods:", colors.yellow, colors.black)
       draw_text(16, 16, insertion_percent.."%", colors.white, colors.black)
     else
@@ -345,7 +345,7 @@ function homepage()
 
 
     -------------AUTO SHUTOFF--------------------------
-    if reactor.getEnergyStats() == null then
+    if reactor.getEnergyStats() ~= null then
       auto = auto_string == "true"
       if auto then
         if active then
@@ -911,6 +911,7 @@ function stop()
   end 
 end
 
+--TODO rework this so it actually works on a 3x3 monitor
 function mon_touch()
   --when the monitor is touch on the homepage
   if y == 1 then 
@@ -987,20 +988,13 @@ function terminal_screen()
   draw_text_term(13, 1, "Extreme Reactor Controls", colors.white, colors.blue)
   draw_line_term(1, 19, 55, colors.blue)
   draw_line_term(1, 18, 55, colors.blue)
-  draw_text_term(13, 18, "by jaranvil aka jared314", colors.white, colors.blue)
-  draw_text_term(13, 19, "modified by Wolf1596Games", colors.white, colors.blue)
-  draw_text_term(13, 20, "modified by padraignix", colors.white, colors.blue)
+  draw_line_term(1, 17, 55, colors.blue)
+  draw_text_term(13, 17, "by jaranvil aka jared314", colors.white, colors.blue)
+  draw_text_term(13, 18, "modified by Wolf1596Games", colors.white, colors.blue)
+  draw_text_term(13, 19, "modified by padraignix", colors.white, colors.blue)
 
   draw_text_term(1, 3, "Current program:", colors.white, colors.black)
   draw_text_term(1, 4, "Reactor Control v"..version, colors.blue, colors.black)
-  
-  draw_text_term(1, 6, "Installer:", colors.white, colors.black)
-  draw_text_term(1, 7, "pastebin.com/2JU1k5vg", colors.blue, colors.black)
-
-  draw_text_term(1, 9, "Please give me your feedback, suggestions,", colors.white, colors.black)
-  draw_text_term(1, 10, "and errors!", colors.white, colors.black)
-
-  draw_text_term(1, 11, "reddit.com/r/br_controls", colors.blue, colors.black)
 end
 
 --run both homepage() and stop() until one returns
@@ -1062,6 +1056,7 @@ end
   else
       monX, monY = mon.getSize()
       draw_text_term(27, 6, "success", colors.lime, colors.black)
+      draw_text_term(27, 7, monX .. ":" .. monY, colors.lime, colors.black)
       sleep(0.5)
   end
     draw_text_term(2, 7, "saving configuration...", colors.white, colors.black)  
