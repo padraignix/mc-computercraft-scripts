@@ -241,6 +241,7 @@ end
 
 --
 function homepage()
+  storedThisTick = 0
   while true do
     clear()
     menu_bar()
@@ -268,7 +269,7 @@ function homepage()
     -- Power Generation
     fet = math.floor(reactor.getEnergyStats().energyProducedLastTick)
     draw_text(math.floor(monX * 0.6) + 5, 5, "FE/t:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 16, 5, format(fet), colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 12, 5, format(fet).."RF/t", colors.white, colors.black)
 
     -- Power Drain
     storedLastTick = storedThisTick
@@ -276,13 +277,13 @@ function homepage()
     lastRFT = reactor.getEnergyStats().energyProducedLastTick
     rfLost = lastRFT + storedLastTick - storedThisTick
     draw_text(math.floor(monX * 0.6) + 5, 7, "Drain:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 14, 7, format(rfLost), colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 11, 7, format(rfLost).."RF/t", colors.white, colors.black)
 
     -- Efficiency
     fuelUsage = reactor.getFuelStats().fuelConsumedLastTick / 1000
     eff = lastRFT / fuelUsage
-    draw_text(math.floor(monX * 0.6) + 5, 9, "RF/B:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 14, 9, format(eff), colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 9, "Efficiency:", colors.green, colors.black)
+    draw_text(math.floor(monX * 0.6) + 14, 9, format(eff).."RF/B", colors.white, colors.black)
 
     -- Waste
     waste = reactor.getWasteAmount()
