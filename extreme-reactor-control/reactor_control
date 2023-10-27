@@ -316,9 +316,9 @@ function homepage()
 
     -------------AUTO CONTROL RODS-----------------------
     auto_rods_bool = auto_rods == "true"
-    insertion_percent = reactor.getControlRod(0).level()
+    insertion_percent = reactor.getControlRodLevel(0)
 
-    if reactor.battery() == null then
+    if reactor.getEnergyStats() == null then
       draw_text(2, 16, "Control Rods:", colors.yellow, colors.black)
       draw_text(16, 16, insertion_percent.."%", colors.white, colors.black)
     else
@@ -724,7 +724,7 @@ function control_rods()
   else
 
     popup_screen(3, "Control Rods", 13)
-    insertion_percent = reactor.getControlRod(0)
+    insertion_percent = reactor.getControlRodLevel(0)
 
     draw_text(5, 5, "Inserted: "..insertion_percent.."%", colors.black, colors.white)
     progress_bar(5, 7, 20, insertion_percent, 100, colors.yellow, colors.gray)
