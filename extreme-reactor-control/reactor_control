@@ -92,6 +92,27 @@ function draw_line_term(x, y, length, color)
     term.write(string.rep(" ", length))
 end
 
+function drawBox(size, xoff, yoff, color)
+  if (mon ~= nil) then
+      local x,y = mon.getCursorPos()
+      mon.setBackgroundColor(color)
+      for i=0,size[1] - 1 do
+          mon.setCursorPos(xoff + i + 1, yoff + 1)
+          mon.write(" ")
+          mon.setCursorPos(xoff + i + 1, yoff + size[2])
+          mon.write(" ")
+      end
+      for i=0, size[2] - 1 do
+          mon.setCursorPos(xoff + 1, yoff + i + 1)
+          mon.write(" ")
+          mon.setCursorPos(xoff + size[1], yoff + i +1)
+          mon.write(" ")
+      end
+      mon.setCursorPos(x,y)
+      mon.setBackgroundColor(colors.black)
+  end
+end
+
 --create progress bar
 --draws two overlapping lines
 --background line of bg_color 
@@ -119,7 +140,7 @@ end
 function menu_bar()
   draw_line(1, 1, monX, colors.blue)
   draw_text(2, 1, "Power    Tools    Settings", colors.white, colors.blue)
-  draw_line(1, monY, monX, colors.blue)
+  draw_line(1, 19, monX, colors.blue)
   draw_text(2, monY, "RCv" ..version.. " - Padraignix", colors.white, colors.blue)
 end
 
@@ -156,27 +177,6 @@ function settings_menu()
   draw_line(12, 3, 18, colors.gray)
   draw_text(13, 2, "Check for Updates", colors.white, colors.gray)
   draw_text(13, 3, "Reset peripherals", colors.white, colors.gray)
-end
-
-function drawBox(size, xoff, yoff, color)
-    if (mon ~= nil) then
-        local x,y = mon.getCursorPos()
-        mon.setBackgroundColor(color)
-        for i=0,size[1] - 1 do
-            mon.setCursorPos(xoff + i + 1, yoff + 1)
-            mon.write(" ")
-            mon.setCursorPos(xoff + i + 1, yoff + size[2])
-            mon.write(" ")
-        end
-        for i=0, size[2] - 1 do
-            mon.setCursorPos(xoff + 1, yoff + i + 1)
-            mon.write(" ")
-            mon.setCursorPos(xoff + size[1], yoff + i +1)
-            mon.write(" ")
-        end
-        mon.setCursorPos(x,y)
-        mon.setBackgroundColor(colors.black)
-    end
 end
 
 --basic popup screen with title bar and exit button 
@@ -229,8 +229,7 @@ function homepage()
     --Added in for debugging "below box"
     drawBox({monX/2-2, monY/2-2}, 2, monY/2 + 1, colors.blue)
     --Added in for debugging "right side box"
-    drawBox({math.floor(monX*0.4), monY/2-2}, math.floor
-    (monX * 0.6) + 1, 3, colors.blue)
+    drawBox({math.floor(monX*0.4), monY/2-2}, math.floor (monX * 0.6) + 1, 3, colors.blue)
     terminal_screen()
 
     if reactor.getEnergyStats() ~= null then
@@ -831,6 +830,7 @@ end
 
 -----------------------Settings--------------------------------
 
+
 function rf_mode()
   wait = read()
 end
@@ -838,6 +838,78 @@ end
 function steam_mode()
   wait = read()
 end
+
+function install_update(program, pastebin)
+    clear()
+    draw_line(4, 5, 22, colors.blue)
+
+    for counter = 6, 10 do
+      draw_line(4, counter, 22, colors.white)
+    end
+
+    draw_text(5, 5, "Updating...", colors.white, colors.blue)
+    draw_text(5, 7, "Open computer", colors.black, colors.white)
+    draw_text(5, 8, "terminal.", colors.black, colors.white)
+
+    if fs.exists("install") then fs.delete("install") end
+    shell.run("pastebin get 2JU1k5vg install")
+    shell.run("install")
+end
+
+function update()
+  popup_screen(5, "Updates", 4)
+  draw_text(5, 7, "Connecting to", colors.black, colors.white)
+  draw_text(5, 8, "pastebin...", colors.black, colors.white)
+
+  sleep(0.5)
+  
+  shell.run("pastebin get Xmfy1Dfc current_version.txt")
+  sr = fs.open("current_version.txt", "r")
+  current_version = tonumber(sr.readLine())
+  sr.close()
+  fs.delete("current_version.txt")
+  terminal_screen()
+
+  if current_version > version then
+
+    popup_screen(5, "Updates", 7)
+    draw_text(5, 7, "Update Available!", colors.black, colors.white)
+    draw_text(11, 9, " Install ", colors.white, colors.black)
+    draw_text(11, 11, " Ignore ", colors.white, colors.black)
+
+    local event, side, xPos, yPos = os.pullEvent("monitor_touch")
+
+    --Instatll button
+    if yPos == 9 and xPos >= 11 and xPos <= 17 then 
+      install_update()
+    end
+
+    --Exit button
+    if yPos == 5 and xPos == 25 then 
+      call_homepage()
+    end
+    call_homepage()
+
+  else
+    popup_screen(5, "Updates", 5)
+    draw_text(5, 7, "You are up to date!", colors.black, colors.white)
+    draw_text(11, 9, " Okay ", colors.white, colors.black)
+
+    local event, side, xPos, yPos = os.pullEvent("monitor_touch")
+
+    --Okay button
+    if yPos == 9 and xPos >= 11 and xPos <= 17 then 
+      call_homepage()
+    end
+
+    --Exit button
+    if yPos == 5 and xPos == 25 then 
+      call_homepage()
+    end
+    call_homepage()
+  end
+
+  
 
 end
 
@@ -867,6 +939,7 @@ function stop()
   end 
 end
 
+--TODO rework this so it actually works on a 3x3 monitor
 function mon_touch()
   --when the monitor is touch on the homepage
   if y == 1 then 
@@ -892,7 +965,7 @@ function mon_touch()
         else
           call_homepage()
         end
- 
+        
       else if x < 20 then
         tools_menu()
         local event, side, xPos, yPos = os.pullEvent("monitor_touch")
@@ -919,6 +992,8 @@ function mon_touch()
         local event, side, xPos, yPos = os.pullEvent("monitor_touch")
         if xPos > 13 then
           if yPos == 2 then
+            update()
+          else if yPos == 3 then
             reset_peripherals() 
           else
             call_homepage()
@@ -981,6 +1056,7 @@ end
   reactor = reactorSearch()
   mon = monitorSearch()
   
+  
   draw_text_term(2, 5, "Connecting to reactor...", colors.white, colors.black)
   sleep(0.5)
   if reactor == null then
@@ -1008,6 +1084,7 @@ end
   else
       monX, monY = mon.getSize()
       draw_text_term(27, 6, "success", colors.lime, colors.black)
+      draw_text_term(27, 7, monX .. ":" .. monY, colors.lime, colors.black)
       sleep(0.5)
   end
     draw_text_term(2, 7, "saving configuration...", colors.white, colors.black)  
@@ -1028,6 +1105,7 @@ function setup_wizard()
   
   term.clear()
 
+  
      draw_text_term(1, 1, "Extreme Reactor Controls v"..version, colors.lime, colors.black)
      draw_text_term(1, 2, "Peripheral setup", colors.white, colors.black)
      draw_text_term(1, 4, "Step 1:", colors.lime, colors.black)
@@ -1042,9 +1120,11 @@ function setup_wizard()
      wait = read()
       test_configs()
 
+   
 end
 
--- Search based on Extreme Reactors peripheral type
+-- peripheral searching thanks to /u/kla_sch
+-- http://pastebin.com/gTEBHv3D
 function reactorSearch()
    local names = peripheral.getNames()
    local i, name
