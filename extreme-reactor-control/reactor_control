@@ -1,9 +1,10 @@
 --  BiggerReactor Control
 --  by jaranvil aka jared314
+--  Modified by Wolf1596Games
 --
 --  feel free to use and/or modify this code
 --
---  Modified by Wolf1596Games
+-- Latest modification by padraignix
 -----------------------------------------------
 --Reactor Control - Version History
 --
@@ -25,10 +26,12 @@
 --
 --  Version 3.7 - January 8/22
 --    - Implemeted auto power feature for actively cooled reactors
-
+--
+--  Version 4.0 - October 27/23
+--    - Porting over initial code for Extreme Reactors / ATM9 (0.2.8)
 -----------------------------------------------
 
-local version = 3.6
+local version = 4.0
 --is auto power enabled 
 local auto_string = false 
 --auto on value
@@ -201,13 +204,13 @@ function homepage()
     menu_bar()
     terminal_screen()
 
-    if reactor.battery() ~= null then
-      energy_stored = reactor.battery().stored()
+    if reactor.getEnergyStats() ~= null then
+      energy_stored = reactor.getEnergyStats().energyStored
     end
     
     --------POWER STAT--------------
     draw_text(2, 3, "Power:", colors.yellow, colors.black)
-    active = reactor.active()
+    active = reactor.getActive()
     if active then
       draw_text(10, 3, "ONLINE", colors.lime, colors.black)
     else
@@ -216,8 +219,8 @@ function homepage()
 
     -----------FUEL---------------------
     draw_text(2, 5, "Fuel Level:", colors.yellow, colors.black)
-    local maxVal = reactor.fuelTank().capacity()
-    local minVal = reactor.fuelTank().fuel() 
+    local maxVal = reactor.getFuelStats().fuelCapacity
+    local minVal = reactor.getFuelStats().fuelAmount
     local percent = math.floor((minVal/maxVal)*100)
     draw_text(15, 5, percent.."%", colors.white, colors.black)
 
@@ -237,7 +240,7 @@ function homepage()
     -----------ROD HEAT---------------
     draw_text(2, 8, "Fuel Temp:", colors.yellow, colors.black)
     local maxVal = 2000
-    local minVal = math.floor(reactor.fuelTemperature())
+    local minVal = math.floor(reactor.getFuelTemperature())
 
     if minVal < 500 then
     progress_bar(2, 9, monX-2, minVal, maxVal, colors.lime, colors.gray)
@@ -260,7 +263,7 @@ function homepage()
     -----------CASING HEAT---------------
     draw_text(2, 11, "Casing Temp:", colors.yellow, colors.black)
     local maxVal = 2000
-    local minVal = math.floor(reactor.casingTemperature())
+    local minVal = math.floor(reactor.getCasingTemperature())
     if minVal < 500 then
     progress_bar(2, 12, monX-2, minVal, maxVal, colors.lime, colors.gray)
     else if minVal < 1000 then
@@ -279,33 +282,33 @@ function homepage()
     draw_text(15, 11, math.floor(minVal).."/"..maxVal, colors.white, colors.black)
 
     -------------OUTPUT-------------------
-    if reactor.battery() == null then
+    if reactor.getEnergyStats() == null then
 
       draw_text(2, 14, "mB/tick:", colors.yellow, colors.black)
-      mbt = math.floor(reactor.coolantTank().transitionedLastTick())
-      draw_text(13, 14, mbt.." mB/t", colors.white, colors.black)
+      --mbt = math.floor(reactor.coolantTank().transitionedLastTick())
+      --draw_text(13, 14, mbt.." mB/t", colors.white, colors.black)
 
     else
 
       draw_text(2, 14, "FE/tick:", colors.yellow, colors.black)
-      fet = math.floor(reactor.battery().producedLastTick())
+      fet = math.floor(reactor.getEnergyStats().energyProducedLastTick)
       draw_text(13, 14, fet.." FE/T", colors.white, colors.black)
 
     end
 
     ------------STORAGE------------
-    if reactor.battery() == null then 
+    if reactor.getEnergyStats() == null then 
 
       draw_text(2, 15, "mB Stored:", colors.yellow, colors.black)
-      fluid_stored = reactor.coolantTank().hotFluidAmount()
-      fluid_max = reactor.coolantTank().capacity()
+      fluid_stored = reactor.getCoolantFluidStats().fluidAmount
+      fluid_max = reactor.getCoolantFluidStats().fluidCapacity
       fluid_stored_percent = math.floor((fluid_stored/fluid_max)*100)
       draw_text(13, 15, fluid_stored_percent.."% ("..fluid_stored.." mB)", colors.white, colors.black)
 
     else
 
     draw_text(2, 15, "FE Stored:", colors.yellow, colors.black)
-    energy_stored_percent = math.floor((energy_stored/reactor.battery().capacity())*100)
+    energy_stored_percent = math.floor((energy_stored/reactor.getEnergyStats().energyCapacity)*100)
     draw_text(13, 15, energy_stored_percent.."% ("..energy_stored.." FE)", colors.white, colors.black)
 
 
@@ -342,7 +345,7 @@ function homepage()
 
 
     -------------AUTO SHUTOFF--------------------------
-    if reactor.battery() == null then
+    if reactor.getEnergyStats() == null then
       auto = auto_string == "true"
       if auto then
         if active then
@@ -400,7 +403,7 @@ function auto_off()
 
   auto = auto_string == "true"
   if auto then --auto power enabled
-    if reactor.battery() == null then
+    if reactor.getEnergyStats() == null then
       popup_screen(3, "Auto Power", 11)
       draw_text(5, 5, "Enabled", colors.lime, colors.white)
       draw_text(15, 5, " disable ", colors.white, colors.black)
@@ -527,9 +530,9 @@ end
 --efficiency menu
 function efficiency()
   popup_screen(3, "Efficiency", 12)
-  fuel_usage = reactor.fuelTank().burnedLastTick()
-  if reactor.battery() ~= null then
-    fet = math.floor(reactor.battery().producedLastTick())
+  fuel_usage = reactor.getFuelStats().fuelConsumedLastTick
+  if reactor.getEnergyStats() ~= null then
+    fet = math.floor(reactor.getEnergyStats().energyProducedLastTick)
   else
     fet = 0
   end
@@ -565,9 +568,9 @@ end
 function fuel()
   popup_screen(3, "Fuel", 9)
 
-  fuel_max = reactor.fuelTank().capacity()
-  fuel_level = reactor.fuelTank().fuel()
-  fuel_reactivity = math.floor(reactor.fuelTank().fuelReactivity())
+  fuel_max = reactor.getFuelStats().fuelCapacity
+  fuel_level = reactor.getFuelStats().fuelAmount
+  fuel_reactivity = math.floor(reactor.getFuelStats().fuelReactivity)
 
   draw_text(5, 5, "Fuel Level: ", colors.lime, colors.white)
   draw_text(5, 6, fuel_level.."/"..fuel_max, colors.black, colors.white)
@@ -596,7 +599,7 @@ end
 function waste()
   popup_screen(3, "Waste", 8)
 
-  waste_amount = reactor.fuelTank().waste()
+  waste_amount = reactor.getWasteAmount()
   draw_text(5, 5, "Waste Amount: ", colors.lime, colors.white)
   draw_text(5, 6, waste_amount.." mB", colors.black, colors.white)
   draw_text(8, 8, " Eject Waste ", colors.white, colors.red)
@@ -606,7 +609,8 @@ function waste()
 
   --eject button
   if yPos == 8 and xPos >= 8 and xPos <= 21 then 
-    reactor.fuelTank().ejectWaste()
+    -- TODO find api for ejecting waste
+    --reactor.fuelTank().ejectWaste()
     popup_screen(5, "Waste Eject", 5)
     draw_text(5, 7, "Waste Ejeceted.", colors.black, colors.white)
     draw_text(11, 9, " Close ", colors.white, colors.black)
@@ -669,10 +673,10 @@ end
 
 function control_rods()
 
-  if reactor.battery() == null then 
+  if reactor.getEnergyStats() == null then 
 
     popup_screen(3, "Control Rods", 13)
-    insertion_percent = reactor.getControlRod(0).level()
+    insertion_percent = reactor.getControlRod(0)
 
     draw_text(5, 5, "Inserted: "..insertion_percent.."%", colors.black, colors.white)
     progress_bar(5, 7, 20, insertion_percent, 100, colors.yellow, colors.gray)
@@ -720,7 +724,7 @@ function control_rods()
   else
 
     popup_screen(3, "Control Rods", 13)
-    insertion_percent = reactor.getControlRod(0).level()
+    insertion_percent = reactor.getControlRod(0)
 
     draw_text(5, 5, "Inserted: "..insertion_percent.."%", colors.black, colors.white)
     progress_bar(5, 7, 20, insertion_percent, 100, colors.yellow, colors.gray)
@@ -980,11 +984,12 @@ end
 function terminal_screen()
   term.clear()
   draw_line_term(1, 1, 55, colors.blue)
-  draw_text_term(13, 1, "BiggerReactor Controls", colors.white, colors.blue)
+  draw_text_term(13, 1, "Extreme Reactor Controls", colors.white, colors.blue)
   draw_line_term(1, 19, 55, colors.blue)
   draw_line_term(1, 18, 55, colors.blue)
   draw_text_term(13, 18, "by jaranvil aka jared314", colors.white, colors.blue)
   draw_text_term(13, 19, "modified by Wolf1596Games", colors.white, colors.blue)
+  draw_text_term(13, 20, "modified by padraignix", colors.white, colors.blue)
 
   draw_text_term(1, 3, "Current program:", colors.white, colors.black)
   draw_text_term(1, 4, "Reactor Control v"..version, colors.blue, colors.black)
@@ -1018,10 +1023,10 @@ end
   term.clear()
 
   draw_line_term(1, 1, 55, colors.blue)
-  draw_text_term(10, 1, "BiggerReactors Controls", colors.white, colors.blue)
+  draw_text_term(10, 1, "Extreme Reactors Controls", colors.white, colors.blue)
   
   draw_line_term(1, 19, 55, colors.blue)
-  draw_text_term(10, 19, "by jaranvil aka jared314", colors.white, colors.blue)
+  draw_text_term(10, 19, "modified by padraignix", colors.white, colors.blue)
 
   draw_text_term(1, 3, "Searching for a peripherals...", colors.white, colors.black)
   sleep(1)
@@ -1078,7 +1083,7 @@ function setup_wizard()
   term.clear()
 
   
-     draw_text_term(1, 1, "BiggerReactor Controls v"..version, colors.lime, colors.black)
+     draw_text_term(1, 1, "Extreme Reactor Controls v"..version, colors.lime, colors.black)
      draw_text_term(1, 2, "Peripheral setup", colors.white, colors.black)
      draw_text_term(1, 4, "Step 1:", colors.lime, colors.black)
      draw_text_term(1, 5, "-Place 3x3 advanced monitors next to computer.", colors.white, colors.black)
@@ -1101,7 +1106,7 @@ function reactorSearch()
    local names = peripheral.getNames()
    local i, name
    for i, name in pairs(names) do
-      if peripheral.getType(name) == "BiggerReactors_Reactor" then
+      if peripheral.getType(name) == "BigReactors-Reactor" then
          return peripheral.wrap(name)
       else
          --return null
