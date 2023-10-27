@@ -140,7 +140,7 @@ end
 function menu_bar()
   draw_line(1, 1, monX, colors.blue)
   draw_text(2, 1, "Power    Tools    Settings", colors.white, colors.blue)
-  draw_line(1, 19, monX, colors.blue)
+  draw_line(1, monY, monX, colors.blue)
   draw_text(2, monY, "RCv" ..version.. " - Padraignix", colors.white, colors.blue)
 end
 
@@ -227,9 +227,9 @@ function homepage()
     clear()
     menu_bar()
     --Added in for debugging "below box"
-    drawBox({monX/2-2, monY/2-2}, 2, monY/2 + 1, colors.blue)
+    drawBox({monX-2, monY/2-2}, 1, monY/2, colors.lightGray)
     --Added in for debugging "right side box"
-    drawBox({math.floor(monX*0.4), monY/2-2}, math.floor (monX * 0.6) + 1, 3, colors.blue)
+    drawBox({math.floor(monX*0.4), monY/2-2}, math.floor(monX * 0.6) + 1, 2, colors.lightGray)
     terminal_screen()
 
     if reactor.getEnergyStats() ~= null then
@@ -253,13 +253,13 @@ function homepage()
     draw_text(15, 5, percent.."%", colors.white, colors.black)
 
     if percent < 25 then
-    progress_bar(2, 6, monX-2 * 0.6, minVal, maxVal, colors.red, colors.gray)
+    progress_bar(2, 6, math.floor(monX*0.6)-2, minVal, maxVal, colors.red, colors.gray)
     else if percent < 50 then
-    progress_bar(2, 6, monX-2 * 0.6, minVal, maxVal, colors.orange, colors.gray)
+    progress_bar(2, 6, math.floor(monX*0.6)-2, minVal, maxVal, colors.orange, colors.gray)
     else if percent < 75 then 
-    progress_bar(2, 6, monX-2 * 0.6, minVal, maxVal, colors.yellow, colors.gray)
+    progress_bar(2, 6, math.floor(monX*0.6)-2, minVal, maxVal, colors.yellow, colors.gray)
     else if percent <= 100 then
-    progress_bar(2, 6, monX-2 * 0.6, minVal, maxVal, colors.lime, colors.gray)
+    progress_bar(2, 6, math.floor(monX*0.6)-2, minVal, maxVal, colors.lime, colors.gray)
     end
     end
     end
@@ -271,15 +271,15 @@ function homepage()
     local minVal = math.floor(reactor.getFuelTemperature())
 
     if minVal < 500 then
-    progress_bar(2, 9, monX-2 * 0.6, minVal, maxVal, colors.lime, colors.gray)
+    progress_bar(2, 9, math.floor(monX*0.6)-2, minVal, maxVal, colors.lime, colors.gray)
     else if minVal < 1000 then
-    progress_bar(2, 9, monX-2 * 0.6, minVal, maxVal, colors.yellow, colors.gray)
+    progress_bar(2, 9, math.floor(monX*0.6)-2, minVal, maxVal, colors.yellow, colors.gray)
     else if minVal < 1500 then  
-    progress_bar(2, 9, monX-2 * 0.6, minVal, maxVal, colors.orange, colors.gray)
+    progress_bar(2, 9, math.floor(monX*0.6)-2, minVal, maxVal, colors.orange, colors.gray)
     else if minVal < 2000 then
-    progress_bar(2, 9, monX-2 * 0.6, minVal, maxVal, colors.red, colors.gray)
+    progress_bar(2, 9, math.floor(monX*0.6)-2, minVal, maxVal, colors.red, colors.gray)
     else if minVal >= 2000 then
-      progress_bar(2, 9, monX-2 * 0.6, 2000, maxVal, colors.red, colors.gray)
+      progress_bar(2, 9, math.floor(monX*0.6)-2, 2000, maxVal, colors.red, colors.gray)
     end
     end
     end
@@ -293,15 +293,15 @@ function homepage()
     local maxVal = 2000
     local minVal = math.floor(reactor.getCasingTemperature())
     if minVal < 500 then
-    progress_bar(2, 12, monX-2 * 0.6, minVal, maxVal, colors.lime, colors.gray)
+    progress_bar(2, 12, math.floor(monX*0.6)-2, minVal, maxVal, colors.lime, colors.gray)
     else if minVal < 1000 then
-    progress_bar(2, 12, monX-2 * 0.6, minVal, maxVal, colors.yellow, colors.gray)
+    progress_bar(2, 12, math.floor(monX*0.6)-2, minVal, maxVal, colors.yellow, colors.gray)
     else if minVal < 1500 then  
-    progress_bar(2, 12, monX-2 * 0.6, minVal, maxVal, colors.orange, colors.gray)
+    progress_bar(2, 12, math.floor(monX*0.6)-2, minVal, maxVal, colors.orange, colors.gray)
     else if minVal < 2000 then
-    progress_bar(2, 12, monX-2 * 0.6, minVal, maxVal, colors.red, colors.gray)
+    progress_bar(2, 12, math.floor(monX*0.6)-2, minVal, maxVal, colors.red, colors.gray)
     else if minVal >= 2000 then
-      progress_bar(2, 12, monX-2 * 0.6, 2000, maxVal, colors.red, colors.gray)
+      progress_bar(2, 12, math.floor(monX*0.6)-2, 2000, maxVal, colors.red, colors.gray)
     end
     end
     end
