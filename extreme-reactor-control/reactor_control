@@ -219,6 +219,24 @@ function load_config()
   sr.close()
 end
 
+function format(num)
+  if (num >= 1000000000) then
+      return string.format("%7.3f G", num / 1000000000)
+  elseif (num >= 1000000) then
+      return string.format("%7.3f M", num / 1000000)
+  elseif (num >= 1000) then
+      return string.format("%7.3f K", num / 1000)
+  elseif (num >= 1) then
+      return string.format("%7.3f ", num)
+  elseif (num >= .001) then
+      return string.format("%7.3f m", num * 1000)
+  elseif (num >= .000001) then
+      return string.format("%7.3f u", num * 1000000)
+  else
+      return string.format("%7.3f ", 0)
+  end
+end
+
 ------------------------END FORMATTING--------------------------
 
 --
