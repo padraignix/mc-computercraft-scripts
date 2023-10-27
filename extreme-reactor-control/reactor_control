@@ -318,7 +318,7 @@ function homepage()
     auto_rods_bool = auto_rods == "true"
     insertion_percent = reactor.getControlRodLevel(0)
 
-    if reactor.getEnergyStats() ~= null then
+    if reactor.getEnergyStats() == null then
       draw_text(2, 16, "Control Rods:", colors.yellow, colors.black)
       draw_text(16, 16, insertion_percent.."%", colors.white, colors.black)
     else
@@ -345,7 +345,7 @@ function homepage()
 
 
     -------------AUTO SHUTOFF--------------------------
-    if reactor.getEnergyStats() ~= null then
+    if reactor.getEnergyStats() == null then
       auto = auto_string == "true"
       if auto then
         if active then
@@ -915,7 +915,7 @@ end
 function mon_touch()
   --when the monitor is touch on the homepage
   if y == 1 then 
-      if x < monX/3 then
+      if x < 10 then
         power_menu()
         local event, side, xPos, yPos = os.pullEvent("monitor_touch")
         if xPos < 9 then
