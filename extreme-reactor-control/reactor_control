@@ -56,6 +56,7 @@ term.clear()
 function clear()
   mon.setBackgroundColor(colors.black)
   mon.clear()
+  mon.setTextScale(0.5)
   mon.setCursorPos(1,1)
 end
 
