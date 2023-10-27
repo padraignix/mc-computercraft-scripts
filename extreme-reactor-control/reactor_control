@@ -226,10 +226,9 @@ function homepage()
   while true do
     clear()
     menu_bar()
-    --Added in for debugging "below box"
+    -- Adding in style boxes --
     drawBox({monX-2, monY/2-2}, 1, monY/2, colors.lightGray)
     draw_text(5, monY/2 + 1, " Graphs: ", colors.lightGray, colors.black)
-    --Added in for debugging "right side box"
     drawBox({math.floor(monX*0.4) -1 , monY/2-3}, math.floor(monX * 0.6) + 1, 2, colors.lightGray)
     draw_text(math.floor(monX * 0.6) + 5, 3, " Stats: ", colors.lightGray, colors.black)
     terminal_screen()
@@ -237,6 +236,12 @@ function homepage()
     if reactor.getEnergyStats() ~= null then
       energy_stored = reactor.getEnergyStats().energyStored
     end
+
+
+    -------- DRAW STATS --------
+    draw_text(math.floor(monX * 0.6) + 5, 5, "FE/tick:", colors.green, colors.black)
+    fet = math.floor(reactor.getEnergyStats().energyProducedLastTick)
+    draw_text(math.floor(monX * 0.6) + 16, 5, fet.." FE/T", colors.white, colors.black)
     
     --------POWER STAT--------------
     draw_text(2, 3, "Power:", colors.yellow, colors.black)
@@ -320,9 +325,9 @@ function homepage()
 
     else
 
-      draw_text(2, 14, "FE/tick:", colors.yellow, colors.black)
-      fet = math.floor(reactor.getEnergyStats().energyProducedLastTick)
-      draw_text(13, 14, fet.." FE/T", colors.white, colors.black)
+      --draw_text(2, 14, "FE/tick:", colors.yellow, colors.black)
+      --fet = math.floor(reactor.getEnergyStats().energyProducedLastTick)
+      --draw_text(13, 14, fet.." FE/T", colors.white, colors.black)
 
     end
 
@@ -339,7 +344,7 @@ function homepage()
 
     draw_text(2, 15, "FE Stored:", colors.yellow, colors.black)
     energy_stored_percent = math.floor((energy_stored/reactor.getEnergyStats().energyCapacity)*100)
-    draw_text(13, 15, energy_stored_percent.."% ("..energy_stored.." FE)", colors.white, colors.black)
+    draw_text(13, 15, energy_stored.." FE", colors.white, colors.black)
 
 
     end
