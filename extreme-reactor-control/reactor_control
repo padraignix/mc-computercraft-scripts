@@ -268,27 +268,27 @@ function homepage()
 
     -- Power Generation
     fet = math.floor(reactor.getEnergyStats().energyProducedLastTick)
-    draw_text(math.floor(monX * 0.6) + 5, 5, "FE/t:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 12, 5, format(fet).."RF/t", colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 5, "Generating:", colors.green, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 6, format(fet).."FE/t", colors.white, colors.black)
 
     -- Power Drain
     storedLastTick = storedThisTick
     storedThisTick = reactor.getEnergyStats().energyStored
     lastRFT = reactor.getEnergyStats().energyProducedLastTick
     rfLost = lastRFT + storedLastTick - storedThisTick
-    draw_text(math.floor(monX * 0.6) + 5, 7, "Drain:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 11, 7, format(rfLost).."RF/t", colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 8, "Drain:", colors.green, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 9, format(rfLost).."FE/t", colors.white, colors.black)
 
     -- Efficiency
     fuelUsage = reactor.getFuelStats().fuelConsumedLastTick / 1000
     eff = lastRFT / fuelUsage
-    draw_text(math.floor(monX * 0.6) + 5, 9, "Efficiency:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 14, 9, format(eff).."RF/B", colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 11, "Efficiency:", colors.green, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 12, format(eff).."FE/B", colors.white, colors.black)
 
     -- Waste
     waste = reactor.getWasteAmount()
-    draw_text(math.floor(monX * 0.6) + 5, 11, "Waste:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 14, 11, waste .. " mB", colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 14, "Waste:", colors.green, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 15, format(waste).."B", colors.white, colors.black)
 
     --------POWER STAT--------------
     draw_text(2, 3, "Power:", colors.yellow, colors.black)
