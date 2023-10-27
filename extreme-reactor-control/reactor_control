@@ -221,19 +221,19 @@ end
 
 function format(num)
   if (num >= 1000000000) then
-      return string.format("%7.3f G", num / 1000000000)
+      return string.format("%.3f G", num / 1000000000)
   elseif (num >= 1000000) then
-      return string.format("%7.3f M", num / 1000000)
+      return string.format("%.3f M", num / 1000000)
   elseif (num >= 1000) then
-      return string.format("%7.3f K", num / 1000)
+      return string.format("%.3f k", num / 1000)
   elseif (num >= 1) then
-      return string.format("%7.3f ", num)
+      return string.format("%.3f ", num)
   elseif (num >= .001) then
-      return string.format("%7.3f m", num * 1000)
+      return string.format("%.3f m", num * 1000)
   elseif (num >= .000001) then
-      return string.format("%7.3f u", num * 1000000)
+      return string.format("%.3f u", num * 1000000)
   else
-      return string.format("%7.3f ", 0)
+      return string.format("%.3f ", 0)
   end
 end
 
@@ -269,7 +269,7 @@ function homepage()
     -- Power Generation
     fet = math.floor(reactor.getEnergyStats().energyProducedLastTick)
     draw_text(math.floor(monX * 0.6) + 5, 5, "Generating:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 5, 6, format(fet).."FE/t", colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 6, 6, format(fet).."FE/t", colors.white, colors.black)
 
     -- Power Drain
     storedLastTick = storedThisTick
@@ -277,18 +277,18 @@ function homepage()
     lastRFT = reactor.getEnergyStats().energyProducedLastTick
     rfLost = lastRFT + storedLastTick - storedThisTick
     draw_text(math.floor(monX * 0.6) + 5, 8, "Drain:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 5, 9, format(rfLost).."FE/t", colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 6, 9, format(rfLost).."FE/t", colors.white, colors.black)
 
     -- Efficiency
     fuelUsage = reactor.getFuelStats().fuelConsumedLastTick / 1000
     eff = lastRFT / fuelUsage
     draw_text(math.floor(monX * 0.6) + 5, 11, "Efficiency:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 5, 12, format(eff).."FE/B", colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 6, 12, format(eff).."FE/B", colors.white, colors.black)
 
     -- Waste
     waste = reactor.getWasteAmount()
     draw_text(math.floor(monX * 0.6) + 5, 14, "Waste:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 5, 15, format(waste).."B", colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 6, 15, waste.." mB", colors.white, colors.black)
 
     --------POWER STAT--------------
     draw_text(2, 3, "Power:", colors.yellow, colors.black)
