@@ -240,24 +240,31 @@ function homepage()
 
     -------- DRAW STATS --------
 
+    --statistics
+    --drawText("Generating : "..format(lastRFT).."RF/t", dim + 5, oS + 3, colors.black, colors.green)
+    --drawText("RF Drain   "..(storedThisTick <= lastRFT and "> " or ": ")..format(rfLost) .."RF/t", dim + 5, oS + 5, colors.black, colors.red)
+    --drawText("Efficiency : "..format(getEfficiency()).."RF/B", dim + 5, oS + 7,colors.black, colors.green)
+    --drawText("Fuel Usage : "..format(fuelUsage).."B/t", dim + 5, oS + 9,colors.black, colors.green)
+    --drawText("Waste      : "..string.format("%7d mB", waste),dim + 5, oS + 11,colors.black, colors.green)
+
     -- Power Generation
     fet = math.floor(reactor.getEnergyStats().energyProducedLastTick)
-    draw_text(math.floor(monX * 0.6) + 5, 5, "FE/tick:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 14, 5, fet, colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 5, "FE/t:", colors.green, colors.black)
+    draw_text(math.floor(monX * 0.6) + 16, 5, format(fet), colors.white, colors.black)
 
     -- Power Drain
     storedLastTick = storedThisTick
     storedThisTick = reactor.getEnergyStats().energyStored
     lastRFT = reactor.getEnergyStats().energyProducedLastTick
     rfLost = lastRFT + storedLastTick - storedThisTick
-    draw_text(math.floor(monX * 0.6) + 5, 7, "Drain/t:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 14, 7, rfLost, colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 7, "Drain:", colors.green, colors.black)
+    draw_text(math.floor(monX * 0.6) + 14, 7, format(rfLost), colors.white, colors.black)
 
     -- Efficiency
     fuelUsage = reactor.getFuelStats().fuelConsumedLastTick / 1000
     eff = lastRFT / fuelUsage
     draw_text(math.floor(monX * 0.6) + 5, 9, "RF/B:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 14, 9, eff, colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 14, 9, format(eff), colors.white, colors.black)
 
     -- Waste
     waste = reactor.getWasteAmount()
