@@ -276,19 +276,27 @@ function homepage()
     storedThisTick = reactor.getEnergyStats().energyStored
     lastRFT = reactor.getEnergyStats().energyProducedLastTick
     rfLost = lastRFT + storedLastTick - storedThisTick
-    draw_text(math.floor(monX * 0.6) + 5, 8, "Drain:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 6, 9, format(rfLost).."FE/t", colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 7, "Drain:", colors.green, colors.black)
+    draw_text(math.floor(monX * 0.6) + 6, 8, format(rfLost).."FE/t", colors.white, colors.black)
 
-    -- Efficiency
+    -- Burn Rate
     fuelUsage = reactor.getFuelStats().fuelConsumedLastTick / 1000
+    draw_text(math.floor(monX * 0.6) + 5, 9, "Burn Rate:", colors.green, colors.black)
+    draw_text(math.floor(monX * 0.6) + 6, 10, format(fuelUsage).."B/t", colors.white, colors.black)
+    
+    -- Efficiency
     eff = lastRFT / fuelUsage
     draw_text(math.floor(monX * 0.6) + 5, 11, "Efficiency:", colors.green, colors.black)
     draw_text(math.floor(monX * 0.6) + 6, 12, format(eff).."FE/B", colors.white, colors.black)
 
     -- Waste
     waste = reactor.getWasteAmount()
-    draw_text(math.floor(monX * 0.6) + 5, 14, "Waste:", colors.green, colors.black)
-    draw_text(math.floor(monX * 0.6) + 6, 15, waste.." mB", colors.white, colors.black)
+    draw_text(math.floor(monX * 0.6) + 5, 13, "Waste:", colors.green, colors.black)
+    draw_text(math.floor(monX * 0.6) + 6, 14, waste.." mB", colors.white, colors.black)
+        
+    draw_text(math.floor(monX * 0.6) + 5, 15, "Stored:", colors.green, colors.black)
+    draw_text(math.floor(monX * 0.6) + 6, 16, format(energy_stored).."FE", colors.white, colors.black)
+   
 
     --------POWER STAT--------------
     draw_text(2, 3, "Power:", colors.yellow, colors.black)
@@ -321,7 +329,7 @@ function homepage()
 
     -----------ROD HEAT---------------
     draw_text(2, 8, "Fuel Temp:", colors.yellow, colors.black)
-    local maxVal = 2000
+    local maxVal = 2200
     local minVal = math.floor(reactor.getFuelTemperature())
 
     if minVal < 500 then
@@ -330,10 +338,10 @@ function homepage()
     progress_bar(2, 9, math.floor(monX*0.6)-2, minVal, maxVal, colors.yellow, colors.gray)
     else if minVal < 1500 then  
     progress_bar(2, 9, math.floor(monX*0.6)-2, minVal, maxVal, colors.orange, colors.gray)
-    else if minVal < 2000 then
+    else if minVal < 2200 then
     progress_bar(2, 9, math.floor(monX*0.6)-2, minVal, maxVal, colors.red, colors.gray)
-    else if minVal >= 2000 then
-      progress_bar(2, 9, math.floor(monX*0.6)-2, 2000, maxVal, colors.red, colors.gray)
+    else if minVal >= 2200 then
+      progress_bar(2, 9, math.floor(monX*0.6)-2, 2200, maxVal, colors.red, colors.gray)
     end
     end
     end
@@ -363,6 +371,25 @@ function homepage()
     end
     draw_text(15, 11, math.floor(minVal).."/"..maxVal, colors.white, colors.black)
 
+    -----------Capacity---------------------
+    draw_text(2, 14, "Energy Cap:", colors.yellow, colors.black)
+    energy_stored_percent = math.floor((energy_stored/reactor.getEnergyStats().energyCapacity)*100)
+    draw_text(15, 14, energy_stored_percent.."%", colors.white, colors.black)
+	maxVal = 100
+
+    if energy_stored_percent < 25 then
+    progress_bar(2, 15, math.floor(monX*0.6)-2, energy_stored_percent , maxVal, colors.red, colors.gray)
+    else if energy_stored_percent < 50 then
+    progress_bar(2, 15, math.floor(monX*0.6)-2, energy_stored_percent , maxVal, colors.orange, colors.gray)
+    else if energy_stored_percent < 75 then 
+    progress_bar(2, 15, math.floor(monX*0.6)-2, energy_stored_percent , maxVal, colors.yellow, colors.gray)
+    else if energy_stored_percent <= 100 then
+    progress_bar(2, 15, math.floor(monX*0.6)-2, energy_stored_percent , maxVal, colors.lime, colors.gray)
+    end
+    end
+    end
+    end
+     
     -------------OUTPUT-------------------
     if reactor.getEnergyStats() == null then
 
@@ -389,9 +416,8 @@ function homepage()
 
     else
 
-    draw_text(2, 15, "FE Stored:", colors.yellow, colors.black)
-    energy_stored_percent = math.floor((energy_stored/reactor.getEnergyStats().energyCapacity)*100)
-    draw_text(13, 15, energy_stored.." FE", colors.white, colors.black)
+    --draw_text(2, 15, "FE Stored:", colors.yellow, colors.black)
+    --draw_text(13, 15, format(energy_stored).." FE", colors.white, colors.black)
 
 
     end
@@ -401,8 +427,8 @@ function homepage()
     insertion_percent = reactor.getControlRodLevel(0)
 
     if reactor.getEnergyStats() == null then
-      draw_text(2, 16, "Control Rods:", colors.yellow, colors.black)
-      draw_text(16, 16, insertion_percent.."%", colors.white, colors.black)
+      draw_text(2, 17, "Control Rods:", colors.yellow, colors.black)
+      draw_text(16, 17, insertion_percent.."%", colors.white, colors.black)
     else
 
       if auto_rods_bool then
@@ -415,61 +441,64 @@ function homepage()
           end
         end
 
-        draw_text(2, 16, "Control Rods:", colors.yellow, colors.black)
-        draw_text(16, 16, insertion_percent.."%", colors.white, colors.black)
-        draw_text(21, 16, "(Auto)", colors.red, colors.black)
+        draw_text(2, 17, "Control Rods:", colors.yellow, colors.black)
+        draw_text(16, 17, insertion_percent.."%", colors.white, colors.black)
+        draw_text(21, 17, "(Auto)", colors.red, colors.black)
       
       else
-        draw_text(2, 16, "Control Rods:", colors.yellow, colors.black)
-        draw_text(16, 16, insertion_percent.."%", colors.white, colors.black)
+        draw_text(2, 17, "Control Rods:", colors.yellow, colors.black)
+        draw_text(16, 17, insertion_percent.."%", colors.white, colors.black)
       end
     end
-
+        
+    -----------Control Rod Graph---------------------
+	maxVal = 100
+    progress_bar(2, 18, math.floor(monX*0.6)-2, insertion_percent , maxVal, colors.lime, colors.gray)
 
     -------------AUTO SHUTOFF--------------------------
     if reactor.getEnergyStats() == null then
       auto = auto_string == "true"
       if auto then
         if active then
-          draw_text(2, 17, "Auto off:", colors.yellow, colors.black)
-          draw_text(13, 17, off.."% MB Stored", colors.white, colors.black)
+          draw_text(2, 18, "Auto off:", colors.yellow, colors.black)
+          draw_text(13, 18, off.."% MB Stored", colors.white, colors.black)
           if fluid_stored_percent >= off then
             reactor.setActive(false)
             call_homepage()
           end
         else
-          draw_text(2, 17, "Auto on:", colors.yellow, colors.black)
-          draw_text(13, 17, on.."% MB Stored", colors.white, colors.black)
+          draw_text(2, 18, "Auto on:", colors.yellow, colors.black)
+          draw_text(13, 18, on.."% MB Stored", colors.white, colors.black)
           if fluid_stored_percent <= on then
             reactor.setActive(true)
             call_homepage()
           end
         end
       else
-        draw_text(2, 17, "Auto power:", colors.yellow, colors.black)
-        draw_text(14, 17, "disabled", colors.red, colors.black)
+        draw_text(2, 18, "Auto power:", colors.yellow, colors.black)
+        draw_text(14, 18, "disabled", colors.red, colors.black)
       end
     else
       auto = auto_string == "true"
       if auto then
         if active then
-          draw_text(2, 17, "Auto off:", colors.yellow, colors.black)
-          draw_text(13, 17, off.."% FE Stored", colors.white, colors.black)
+          --draw_text(2, 18, "Auto off:", colors.yellow, colors.black)
+          --draw_text(13, 18, off.."% FE Stored", colors.white, colors.black)
           if energy_stored_percent >= off then
             reactor.setActive(false)
             call_homepage()
           end
         else
-          draw_text(2, 17, "Auto on:", colors.yellow, colors.black)
-          draw_text(13, 17, on.."% FE Stored", colors.white, colors.black)
+          --draw_text(2, 18, "Auto on:", colors.yellow, colors.black)
+          --draw_text(13, 18, on.."% FE Stored", colors.white, colors.black)
           if energy_stored_percent <= on then
             reactor.setActive(true)
             call_homepage()
           end
         end
       else
-        draw_text(2, 17, "Auto power:", colors.yellow, colors.black)
-        draw_text(14, 17, "disabled", colors.red, colors.black)
+        --draw_text(2, 18, "Auto power:", colors.yellow, colors.black)
+        --draw_text(14, 18, "disabled", colors.red, colors.black)
       end
     end
 
