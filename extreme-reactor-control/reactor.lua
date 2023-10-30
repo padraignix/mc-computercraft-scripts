@@ -16,6 +16,9 @@ local basalt = require("basalt")
 -- Variables
 autoOnPerc = 100
 autoOffPerc = 100
+autoRods = false
+rodLevelControl = 0
+
 ------------ ENERGY STAT FUNCTION -------------
 
 -- TODO
@@ -92,31 +95,52 @@ local powerStatusLabel = sub[2]:addLabel()
 ---- Adding Radio Buttons
 -- Function for changing frames
 local function powerOptions(id)
-    check = id --bMenubar:getItem(id).text
-    if check == "3" then
+    check = id --bMenubar:getItem(id).number
+    if check == "ON" then
         powerStatusLabel:setForeground(colors.red)
         powerStatusLabel:setText("OFFLINE")
+        -- TODO turn off reactor
     end
-    if check == "1" then
+    if check == "OFF" then
         powerStatusLabel:setForeground(colors.green)
         powerStatusLabel:setText("ONLINE")
-    end
-    if check == "2" then
-        powerStatusLabel:setForeground(colors.green)
-        powerStatusLabel:setText("ONLINE AUTO")
+        -- TODO turn on reactor
     end
 end
 
--- Setting Top Menu Bar
+-- Setting Top Power Bar
+local power2Label = sub[2]:addLabel()
+  :setText("Power: ")
+  :setFontSize(1)
+  :setPosition(19,2)
+  :setSize(7,1)
+  :setForeground(colors.lightYellow)
 bMenubar = sub[2]:addMenubar()
-  :addItem("OFF",colors.blue,colors.white) -- id3
-  :addItem("ON",colors.blue,colors.white) -- id1
-  :addItem("AUTO",colors.blue,colors.white) -- id2
-  :setPosition(21,2)
-  :setSize(15,1)
+  :addItem("OFF",colors.blue,colors.white)
+  :addItem("ON",colors.blue,colors.white)
+  :setPosition(25,2)
+  :setSize(9,1)
   :setBackground(colors.black)
   :onChange(function(self, val)
-    powerOptions(tostring(self:getItemIndex()))
+    powerOptions(self:getItem(self:getItemIndex()).text)
+  end)
+
+-- Setting Top Power Bar
+local powerAutoLabel = sub[2]:addLabel()
+  :setText("Auto: ")
+  :setFontSize(1)
+  :setPosition(19,3)
+  :setSize(6,1)
+  :setForeground(colors.lightYellow)
+dMenubar = sub[2]:addMenubar()
+  :addItem("OFF",colors.blue,colors.white)
+  :addItem("ON",colors.blue,colors.white)
+  :setPosition(25,3)
+  :setSize(9,1)
+  :setBackground(colors.black)
+  :onChange(function(self, val)
+    --powerOptions(self:getItem(self:getItemIndex()).text)
+    --TODO, turn on automation
   end)
 
 ---- FUEL STATUS
@@ -176,11 +200,11 @@ local progressBarEnergy = sub[2]:addProgressbar()
   :setProgressBar(colors.lime, " ", colors.white)
 
 ---- CONTROL ROD  
-local rodLabel = sub[2]:addLabel()
-  :setText("Control Rods: ")
+rodLabel = sub[2]:addLabel()
+  :setText("Control Rods: "..tostring(rodLevelControl).."%")
   :setFontSize(1)
   :setPosition(2, 16)
-  :setSize(14,1)
+  :setSize(20,1)
   :setForeground(colors.lightYellow)
 local progressBarRods = sub[2]:addProgressbar()
   :setDirection(0)
@@ -291,9 +315,9 @@ autoOnInput = sub[2]:addLabel()
   :setForeground(colors.white)
   :setBackground(colors.black)
 local autoOnLButton = sub[2]:addButton()
-  :setText("<")
-  :setPosition(20,19)
-  :setSize(1,1)
+  :setText(" < ")
+  :setPosition(21,19)
+  :setSize(3,1)
 autoOnLButton:onClick(function(self,event,button,x,y)
   if(event=="mouse_click")and(button==1)then
     if autoOnPerc > 0 then
@@ -303,9 +327,9 @@ autoOnLButton:onClick(function(self,event,button,x,y)
   end
 end)
 local autoOnRButton = sub[2]:addButton()
-  :setText(">")
-  :setPosition(22,19)
-  :setSize(1,1)
+  :setText(" > ")
+  :setPosition(25,19)
+  :setSize(3,1)
 autoOnRButton:onClick(function(self,event,button,x,y)
   if(event=="mouse_click")and(button==1)then
     if autoOnPerc < 100 then
@@ -327,9 +351,9 @@ autoOffInput = sub[2]:addLabel()
   :setForeground(colors.white)
   :setBackground(colors.black)
 local autoOffLButton = sub[2]:addButton()
-  :setText("<")
-  :setPosition(20,21)
-  :setSize(1,1)
+  :setText(" < ")
+  :setPosition(21,21)
+  :setSize(3,1)
 autoOffLButton:onClick(function(self,event,button,x,y)
   if(event=="mouse_click")and(button==1)then
     if autoOffPerc > 0 then
@@ -339,14 +363,77 @@ autoOffLButton:onClick(function(self,event,button,x,y)
   end
 end)
 local autoOffRButton = sub[2]:addButton()
-  :setText(">")
-  :setPosition(22,21)
-  :setSize(1,1)
+  :setText(" > ")
+  :setPosition(25,21)
+  :setSize(3,1)
 autoOffRButton:onClick(function(self,event,button,x,y)
   if(event=="mouse_click")and(button==1)then
     if autoOffPerc < 100 then
         autoOffPerc = autoOffPerc + 1
         autoOffInput:setText(autoOffPerc.."%")
+    end
+  end
+end)
+
+-------- Control Rod Automation Area ---------
+local function controlRodOptions(id)
+    check = id
+    if check == "1" then
+        autoRods = true
+    end
+    if check == "2" then
+        autoRods = false
+    end
+end
+
+local autoRodOnLabel = sub[2]:addLabel()
+  :setText("Auto Rods: ")
+  :setFontSize(1)
+  :setPosition(32,19)
+  :setForeground(colors.white)
+  :setBackground(colors.black)
+cMenubar = sub[2]:addMenubar()
+  :addItem("OFF",colors.blue,colors.white) -- id1
+  :addItem("ON",colors.blue,colors.white) -- id2
+  :setPosition(45,19)
+  :setSize(9,1)
+  :setBackground(colors.black)
+  :onChange(function(self, val)
+    controlRodOptions(tostring(self:getItemIndex()))
+  end)
+
+-- Manual Rod Control
+local manRodLButton = sub[2]:addButton()
+  :setText(" < ")
+  :setPosition(32,21)
+  :setSize(3,1)
+manRodLButton:onClick(function(self,event,button,x,y)
+  if(event=="mouse_click")and(button==1)then
+    if rodLevelControl > 0 then
+        rodLevelControl = rodLevelControl - 5
+        rodLabel:setText("Control Rod:  "..tostring(rodLevelControl).."%")
+        progressBarRods:setProgress(rodLevelControl)
+    end
+  end
+end)
+
+local manRodOnLabel = sub[2]:addLabel()
+  :setText("Manual Control")
+  :setFontSize(1)
+  :setPosition(36,21)
+  :setForeground(colors.white)
+  :setBackground(colors.black)
+
+local manRodRButton = sub[2]:addButton()
+  :setText(" > ")
+  :setPosition(51,21)
+  :setSize(3,1)
+manRodRButton:onClick(function(self,event,button,x,y)
+  if(event=="mouse_click")and(button==1)then
+    if rodLevelControl < 100 then
+        rodLevelControl = rodLevelControl + 5
+        rodLabel:setText("Control Rod:  "..tostring(rodLevelControl).."%")
+        progressBarRods:setProgress(rodLevelControl)
     end
   end
 end)
