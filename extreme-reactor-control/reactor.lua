@@ -13,16 +13,57 @@
 local version = 0.1
 local basalt = require("basalt")
 
--- Variables
-autoOnPerc = 100
+-- Peripherals
+local reactor
+
+---- Variables
+-- Automation
+autoOnPerc = 20
 autoOffPerc = 100
+autoPower = false
 autoRods = false
+-- ProgressBar Stats
+fuelLevel = 0
+fuelTemp = 0
+casingTemp = 0
+energyCap = 0
 rodLevelControl = 0
+-- General Stats
+statsGen = 0
+statsDrain = 0
+statsBurn = 0
+statsEff = 0
+statsWaste = 0
+statsStored = 0
 
 ------------ ENERGY STAT FUNCTION -------------
+-----------------------------------------------
 
--- TODO
 
+
+
+-------------- Helper Functions ---------------
+-----------------------------------------------
+
+function format(num)
+  if (num >= 1000000000) then
+      return string.format("%.3f G", num / 1000000000)
+  elseif (num >= 1000000) then
+      return string.format("%.3f M", num / 1000000)
+  elseif (num >= 1000) then
+      return string.format("%.3f k", num / 1000)
+  elseif (num >= 1) then
+      return string.format("%.3f ", num)
+  elseif (num >= .001) then
+      return string.format("%.3f m", num * 1000)
+  elseif (num >= .000001) then
+      return string.format("%.3f u", num * 1000000)
+  else
+      return string.format("%.3f ", 0)
+  end
+end
+
+---------------- GUI Elements -----------------
 -----------------------------------------------
 
 -- Setting the main monitor scale, didn't figure out how to do this within Basalt
@@ -56,6 +97,7 @@ end
 local aMenubar = main:addMenubar()
   :addItem("Power Stats",colors.blue,colors.white)
   :addItem("Efficiency",colors.blue,colors.white)
+  :setSelectionColor(colors.lightGray,colors.black)
   :setPosition(1,1)
   :setBackground(colors.blue)
   :setSize("{parent.w}",1)
@@ -85,7 +127,6 @@ local powerLabel = sub[2]:addLabel()
   :setFontSize(1)
   :setPosition(2, 2)
   :setSize(7,1)
-  :setForeground(colors.lightYellow)
 local powerStatusLabel = sub[2]:addLabel()
   :setText("OFFLINE")
   :setFontSize(1)
@@ -114,18 +155,28 @@ local power2Label = sub[2]:addLabel()
   :setFontSize(1)
   :setPosition(19,2)
   :setSize(7,1)
-  :setForeground(colors.lightYellow)
 bMenubar = sub[2]:addMenubar()
   :addItem("OFF",colors.blue,colors.white)
   :addItem("ON",colors.blue,colors.white)
   :setPosition(25,2)
   :setSize(9,1)
   :setBackground(colors.black)
+  :setSelectionColor(colors.lightGray,colors.black)
   :onChange(function(self, val)
     powerOptions(self:getItem(self:getItemIndex()).text)
   end)
 
 -- Setting Top Power Bar
+local function powerAutoOptions(id)
+  if id == 1 then
+    autoPower = true
+    basalt.debug(autoPower)
+  end
+  if id == 2 then
+    autoPower = false
+    basalt.debug(autoPower)
+  end
+end
 local powerAutoLabel = sub[2]:addLabel()
   :setText("Auto: ")
   :setFontSize(1)
@@ -138,77 +189,77 @@ dMenubar = sub[2]:addMenubar()
   :setPosition(25,3)
   :setSize(9,1)
   :setBackground(colors.black)
+  :setSelectionColor(colors.lightGray,colors.black)
   :onChange(function(self, val)
-    --powerOptions(self:getItem(self:getItemIndex()).text)
-    --TODO, turn on automation
+    powerAutoOptions(self:getItemIndex())
   end)
 
 ---- FUEL STATUS
 local fuelLabel = sub[2]:addLabel()
-  :setText("Fuel Level: ")
+  :setText("Fuel Level:  "..fuelLevel.."%")
   :setFontSize(1)
   :setPosition(2, 4)
-  :setSize(14,1)
+  --:setSize(14,1)
   :setForeground(colors.lightYellow)
 local progressBarFuel = sub[2]:addProgressbar()
   :setDirection(0)
-  :setProgress(10)
+  :setProgress(fuelLevel)
   :setPosition(2, 5)
   :setSize("{parent.w * 0.6 - 2}",1)
   :setProgressBar(colors.lime, " ", colors.white)
 
 ---- FUEL TEMP
 local fuelTempLabel = sub[2]:addLabel()
-  :setText("Fuel Temp: ")
+  :setText("Fuel Temp:   "..fuelTemp.." / 2000")
   :setFontSize(1)
   :setPosition(2, 7)
-  :setSize(14,1)
+  --:setSize(14,1)
   :setForeground(colors.lightYellow)
 local progressBarFuelTemp = sub[2]:addProgressbar()
   :setDirection(0)
-  :setProgress(10)
+  :setProgress(fuelTemp/2000)
   :setPosition(2, 8)
   :setSize("{parent.w * 0.6 - 2}",1)
   :setProgressBar(colors.lime, " ", colors.white)
 
 ---- CASING TEMP
 local casingLabel = sub[2]:addLabel()
-  :setText("Casing Temp: ")
+  :setText("Casing Temp: "..casingTemp.." / 2000")
   :setFontSize(1)
   :setPosition(2, 10)
-  :setSize(14,1)
+  --:setSize(14,1)
   :setForeground(colors.lightYellow)
 local progressBarCasing = sub[2]:addProgressbar()
   :setDirection(0)
-  :setProgress(10)
+  :setProgress(casingTemp/2000)
   :setPosition(2, 11)
   :setSize("{parent.w * 0.6 - 2}",1)
   :setProgressBar(colors.lime, " ", colors.white)
 
 ---- ENERGY CAP 
 local energyLabel = sub[2]:addLabel()
-  :setText("Energy Cap: ")
+  :setText("Energy Cap:  "..energyCap.."%")
   :setFontSize(1)
   :setPosition(2, 13)
-  :setSize(14,1)
+  --:setSize(14,1)
   :setForeground(colors.lightYellow)
 local progressBarEnergy = sub[2]:addProgressbar()
   :setDirection(0)
-  :setProgress(10)
+  :setProgress(energyCap)
   :setPosition(2, 14)
   :setSize("{parent.w * 0.6 - 2}",1)
   :setProgressBar(colors.lime, " ", colors.white)
 
 ---- CONTROL ROD  
 rodLabel = sub[2]:addLabel()
-  :setText("Control Rods: "..tostring(rodLevelControl).."%")
+  :setText("Rods Levels: "..tostring(rodLevelControl).."%")
   :setFontSize(1)
   :setPosition(2, 16)
   :setSize(20,1)
   :setForeground(colors.lightYellow)
 local progressBarRods = sub[2]:addProgressbar()
   :setDirection(0)
-  :setProgress(10)
+  :setProgress(rodLevelControl)
   :setPosition(2, 17)
   :setSize("{parent.w * 0.6 - 2}",1)
   :setProgressBar(colors.lime, " ", colors.white)
@@ -236,7 +287,7 @@ local genLabel1 = sub[2]:addLabel()
   :setForeground(colors.green)
   :setBackground(colors.black)
 local genLabel2 = sub[2]:addLabel()
-  :setText("x FE/t")
+  :setText(format(statsGen).."FE/t")
   :setFontSize(1)
   :setPosition("{parent.w * 0.7}", 5)
   :setForeground(colors.white)
@@ -248,7 +299,7 @@ local drainLabel1 = sub[2]:addLabel()
   :setForeground(colors.green)
   :setBackground(colors.black)
 local drainLabel2 = sub[2]:addLabel()
-  :setText("x FE/t")
+  :setText(format(statsDrain).."FE/t")
   :setFontSize(1)
   :setPosition("{parent.w * 0.7}", 7)
   :setForeground(colors.white)
@@ -260,7 +311,7 @@ local burnLabel1 = sub[2]:addLabel()
   :setForeground(colors.green)
   :setBackground(colors.black)
 local burnLabel2 = sub[2]:addLabel()
-  :setText("x B/t")
+  :setText(format(statsBurn).."B/t")
   :setFontSize(1)
   :setPosition("{parent.w * 0.7}", 9)
   :setForeground(colors.white)
@@ -272,7 +323,7 @@ local effLabel1 = sub[2]:addLabel()
   :setForeground(colors.green)
   :setBackground(colors.black)
 local effLabel2 = sub[2]:addLabel()
-  :setText("x FE/B")
+  :setText(format(statsEff).."FE/B")
   :setFontSize(1)
   :setPosition("{parent.w * 0.7}", 11)
   :setForeground(colors.white)
@@ -284,7 +335,7 @@ local wasteLabel1 = sub[2]:addLabel()
   :setForeground(colors.green)
   :setBackground(colors.black)
 local wasteLabel2 = sub[2]:addLabel()
-  :setText("x mB")
+  :setText(format(statsWaste).."mB")
   :setFontSize(1)
   :setPosition("{parent.w * 0.7}", 13)
   :setForeground(colors.white)
@@ -296,7 +347,7 @@ local storedLabel1 = sub[2]:addLabel()
   :setForeground(colors.green)
   :setBackground(colors.black)
 local storedLabel2 = sub[2]:addLabel()
-  :setText("x FE")
+  :setText(format(statsStored).."FE")
   :setFontSize(1)
   :setPosition("{parent.w * 0.7}", 15)
   :setForeground(colors.white)
@@ -380,9 +431,11 @@ local function controlRodOptions(id)
     check = id
     if check == "1" then
         autoRods = true
+        basalt.debug(autoRods)
     end
     if check == "2" then
         autoRods = false
+        basalt.debug(autoRods)
     end
 end
 
@@ -397,7 +450,7 @@ cMenubar = sub[2]:addMenubar()
   :addItem("ON",colors.blue,colors.white) -- id2
   :setPosition(45,19)
   :setSize(9,1)
-  :setBackground(colors.black)
+  :setSelectionColor(colors.lightGray,colors.black)
   :onChange(function(self, val)
     controlRodOptions(tostring(self:getItemIndex()))
   end)
@@ -411,7 +464,7 @@ manRodLButton:onClick(function(self,event,button,x,y)
   if(event=="mouse_click")and(button==1)then
     if rodLevelControl > 0 then
         rodLevelControl = rodLevelControl - 5
-        rodLabel:setText("Control Rod:  "..tostring(rodLevelControl).."%")
+        rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
         progressBarRods:setProgress(rodLevelControl)
     end
   end
@@ -432,7 +485,7 @@ manRodRButton:onClick(function(self,event,button,x,y)
   if(event=="mouse_click")and(button==1)then
     if rodLevelControl < 100 then
         rodLevelControl = rodLevelControl + 5
-        rodLabel:setText("Control Rod:  "..tostring(rodLevelControl).."%")
+        rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
         progressBarRods:setProgress(rodLevelControl)
     end
   end
@@ -456,15 +509,22 @@ local aGraph = sub[2]:addGraph()
   :setGraphSymbol(" ")
   :setGraphColor(colors.lime)
   :setBackground(colors.black)
-  :addDataPoint(80)
-  :addDataPoint(75)
-  :addDataPoint(70)
-  :addDataPoint(60)
-  :addDataPoint(50)
-  :addDataPoint(30)
-  :addDataPoint(10)
-  :addDataPoint(0)
    
 openSubFrame(2)
+
+--local function getReactorStats()
+--  while true do
+--      energyCube = peripheral.find("ultimateEnergyCube")
+--      if(energyCube~=nil)then
+--          local energyCalculation = energyCube.getEnergy() / energyCube.getMaxEnergy() * 100
+--          energyProgress:setProgress(energyCalculation)
+--      else
+--          energyProgress:setProgress(0)
+--          os.sleep(3)
+--      end
+--     os.sleep(1)
+--  end
+--end
+--main:addThread():start(getReactorStats)
 
 basalt.autoUpdate()
