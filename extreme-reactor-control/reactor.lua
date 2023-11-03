@@ -15,6 +15,7 @@ local basalt = require("basalt")
 
 -- Peripherals
 local reactor
+local mon
 
 ---- Variables
 -- Automation
@@ -35,12 +36,8 @@ statsBurn = 0
 statsEff = 0
 statsWaste = 0
 statsStored = 0
-
------------- ENERGY STAT FUNCTION -------------
------------------------------------------------
-
-
-
+storedLastTick = 0
+storedThisTick = 0
 
 -------------- Helper Functions ---------------
 -----------------------------------------------
@@ -66,8 +63,7 @@ end
 ---------------- GUI Elements -----------------
 -----------------------------------------------
 
--- Setting the main monitor scale, didn't figure out how to do this within Basalt
-local mon
+-- Setting the main monitor scale
 mon = peripheral.wrap("back")
 mon.setTextScale(0.5)
 
@@ -96,7 +92,7 @@ end
 -- Setting Top Menu Bar
 local aMenubar = main:addMenubar()
   :addItem("Power Stats",colors.blue,colors.white)
-  :addItem("Efficiency",colors.blue,colors.white)
+  --:addItem("Efficiency",colors.blue,colors.white)
   :setSelectionColor(colors.lightGray,colors.black)
   :setPosition(1,1)
   :setBackground(colors.blue)
@@ -140,12 +136,12 @@ local function powerOptions(id)
     if check == "ON" then
         powerStatusLabel:setForeground(colors.red)
         powerStatusLabel:setText("OFFLINE")
-        -- TODO turn off reactor
+        reactor.setActive(false)
     end
     if check == "OFF" then
         powerStatusLabel:setForeground(colors.green)
         powerStatusLabel:setText("ONLINE")
-        -- TODO turn on reactor
+        reactor.setActive(true)
     end
 end
 
@@ -170,11 +166,9 @@ bMenubar = sub[2]:addMenubar()
 local function powerAutoOptions(id)
   if id == 1 then
     autoPower = true
-    basalt.debug(autoPower)
   end
   if id == 2 then
     autoPower = false
-    basalt.debug(autoPower)
   end
 end
 local powerAutoLabel = sub[2]:addLabel()
@@ -426,78 +420,257 @@ autoOffRButton:onClick(function(self,event,button,x,y)
   end
 end)
 
--------- Control Rod Automation Area ---------
-local function controlRodOptions(id)
-    check = id
-    if check == "1" then
-        autoRods = true
-        basalt.debug(autoRods)
-    end
-    if check == "2" then
-        autoRods = false
-        basalt.debug(autoRods)
-    end
-end
-
-local autoRodOnLabel = sub[2]:addLabel()
-  :setText("Auto Rods: ")
-  :setFontSize(1)
-  :setPosition(32,19)
-  :setForeground(colors.white)
-  :setBackground(colors.black)
-cMenubar = sub[2]:addMenubar()
-  :addItem("OFF",colors.blue,colors.white) -- id1
-  :addItem("ON",colors.blue,colors.white) -- id2
-  :setPosition(45,19)
-  :setSize(9,1)
-  :setSelectionColor(colors.lightGray,colors.black)
-  :onChange(function(self, val)
-    controlRodOptions(tostring(self:getItemIndex()))
-  end)
 
 -- Manual Rod Control
+local manRodLLButton = sub[2]:addButton()
+  :setText(" << ")
+  :setPosition(34,21)
+  :setSize(4,1)
+manRodLLButton:onClick(function(self,event,button,x,y)
+  if(event=="mouse_click")and(button==1)then
+    if rodLevelControl > 0 then
+        rodLevelControl = rodLevelControl - 10
+        rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
+        --progressBarRods:setProgress(rodLevelControl)
+        reactor.setAllControlRodLevels(rodLevelControl)
+    end
+  end
+end)
 local manRodLButton = sub[2]:addButton()
   :setText(" < ")
-  :setPosition(32,21)
+  :setPosition(39,21)
   :setSize(3,1)
 manRodLButton:onClick(function(self,event,button,x,y)
   if(event=="mouse_click")and(button==1)then
     if rodLevelControl > 0 then
-        rodLevelControl = rodLevelControl - 5
+        rodLevelControl = rodLevelControl - 1
         rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
-        progressBarRods:setProgress(rodLevelControl)
+        --progressBarRods:setProgress(rodLevelControl)
+        reactor.setAllControlRodLevels(rodLevelControl)
     end
   end
 end)
 
-local manRodOnLabel = sub[2]:addLabel()
-  :setText("Manual Control")
-  :setFontSize(1)
-  :setPosition(36,21)
-  :setForeground(colors.white)
-  :setBackground(colors.black)
+--local manRodOnLabel = sub[2]:addLabel()
+--  :setText("Adj")
+--  :setFontSize(1)
+--  :setPosition(43,21)
+--  :setForeground(colors.white)
+--  :setBackground(colors.black)
 
 local manRodRButton = sub[2]:addButton()
   :setText(" > ")
-  :setPosition(51,21)
+  :setPosition(44,21)
   :setSize(3,1)
 manRodRButton:onClick(function(self,event,button,x,y)
   if(event=="mouse_click")and(button==1)then
     if rodLevelControl < 100 then
-        rodLevelControl = rodLevelControl + 5
+        rodLevelControl = rodLevelControl + 1
         rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
-        progressBarRods:setProgress(rodLevelControl)
+        --progressBarRods:setProgress(rodLevelControl)
+        reactor.setAllControlRodLevels(rodLevelControl)
+    end
+  end
+end)
+local manRodRRButton = sub[2]:addButton()
+  :setText(" >> ")
+  :setPosition(48,21)
+  :setSize(4,1)
+manRodRRButton:onClick(function(self,event,button,x,y)
+  if(event=="mouse_click")and(button==1)then
+    if rodLevelControl < 100 then
+        rodLevelControl = rodLevelControl + 10
+        rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
+        --progressBarRods:setProgress(rodLevelControl)
+        reactor.setAllControlRodLevels(rodLevelControl)
     end
   end
 end)
 
+-------- Control Rod Automation Area ---------
+local function controlRodOptions(id)
+  check = id
+  ---- TODO commenting out autorod until functionality is created
+  --if check == "1" then
+  --    autoRods = true
+  --    manRodLLButton:hide()
+  --    manRodLButton:hide()
+  --    manRodRButton:hide()
+  --    manRodRRButton:hide()
+  --end
+  if check == "2" then
+      autoRods = false
+      manRodLLButton:show()
+      manRodLButton:show()
+      manRodRButton:show()
+      manRodRRButton:show()
+  end
+end
+
+local autoRodOnLabel = sub[2]:addLabel()
+:setText("Auto Rods: ")
+:setFontSize(1)
+:setPosition(32,19)
+:setForeground(colors.white)
+:setBackground(colors.black)
+cMenubar = sub[2]:addMenubar()
+:addItem("OFF",colors.blue,colors.white) -- id1
+:addItem("ON",colors.blue,colors.white) -- id2
+:setPosition(45,19)
+:setSize(9,1)
+:setSelectionColor(colors.lightGray,colors.black)
+:onChange(function(self, val)
+  controlRodOptions(tostring(self:getItemIndex()))
+end)
+
+------------ ENERGY STAT FUNCTION -------------
+-----------------------------------------------
+function reactorStats()
+  bat = reactor.getEnergyStats()
+  fuel = reactor.getFuelStats()
+
+  storedLastTick = storedThisTick
+  storedThisTick = bat.energyStored
+  lastRFT = bat.energyProducedLastTick
+  energyStored = bat.energyStored
+  energyCapacity = bat.energyCapacity
+  rod = reactor.getControlRodLevel(0)
+  fuelUsage = fuel.fuelConsumedLastTick / 1000
+  waste = reactor.getWasteAmount()
+  fuelTemp = reactor.getFuelTemperature()
+  caseTemp = reactor.getCasingTemperature()
+
+end
+------------------------------------------------
+------- Updating Reactor Stats Function --------
+function updateReactorStats()
+
+  ------------ Progress Bars -------------------
+  fuelLevel = math.floor((fuel.fuelAmount/fuel.fuelCapacity)*100)
+  fuelLabel:setText("Fuel Level:  "..fuelLevel.."%")
+  progressBarFuel:setProgress(fuelLevel)
+  ----
+  fuelTempLabel:setText("Fuel Temp:   "..math.floor(fuelTemp).." / 2000")
+  local fuelTempPerc = math.floor((fuelTemp/2000)*100)
+  if fuelTempPerc <= 25 then
+    progressBarFuelTemp:setProgress(fuelTempPerc)
+    progressBarFuelTemp:setProgressBar(colors.lime, " ", colors.white)
+  end
+  if fuelTempPerc > 25 and fuelTempPerc <= 50 then
+    progressBarFuelTemp:setProgress(fuelTempPerc)
+    progressBarFuelTemp:setProgressBar(colors.yellow, " ", colors.white)
+  end
+  if fuelTempPerc > 50 and fuelTempPerc <= 75 then
+    progressBarFuelTemp:setProgress(fuelTempPerc)
+    progressBarFuelTemp:setProgressBar(colors.orange, " ", colors.white)
+  end
+  if fuelTempPerc > 75 and fuelTempPerc <= 100 then
+    progressBarFuelTemp:setProgress(fuelTempPerc)
+    progressBarFuelTemp:setProgressBar(colors.red, " ", colors.white)
+  end
+  if fuelTempPerc > 100 then
+    progressBarFuelTemp:setProgress(100)
+    progressBarFuelTemp:setProgressBar(colors.red, " ", colors.white)
+  end
+  ----
+  casingLabel:setText("Casing Temp: "..math.floor(caseTemp).." / 2000")
+  local casingTempPerc = math.floor((caseTemp/2000)*100)
+  if casingTempPerc <= 25 then
+    progressBarCasing:setProgress(casingTempPerc)
+    progressBarCasing:setProgressBar(colors.lime, " ", colors.white)
+  end
+  if casingTempPerc > 25 and casingTempPerc <= 50 then
+    progressBarCasing:setProgress(casingTempPerc)
+    progressBarCasing:setProgressBar(colors.yellow, " ", colors.white)
+  end
+  if casingTempPerc > 50 and casingTempPerc <= 75 then
+    progressBarCasing:setProgress(casingTempPerc)
+    progressBarCasing:setProgressBar(colors.orange, " ", colors.white)
+  end
+  if casingTempPerc > 75 and casingTempPerc <= 100 then
+    progressBarCasing:setProgress(casingTempPerc)
+    progressBarCasing:setProgressBar(colors.red, " ", colors.white)
+  end
+  if casingTempPerc > 100 then
+    progressBarCasing:setProgress(100)
+    progressBarCasing:setProgressBar(colors.red, " ", colors.white)
+  end
+  ----
+  energyCap = math.floor((energyStored/energyCapacity)*100)
+  energyLabel:setText("Energy Cap:  "..energyCap.."%")
+  if energyCap <= 10 then
+    progressBarEnergy:setProgress(energyCap)
+    progressBarEnergy:setProgressBar(colors.red, " ", colors.white)
+  end
+  if energyCap > 10 and energyCap <= 25 then
+    progressBarEnergy:setProgress(energyCap)
+    progressBarEnergy:setProgressBar(colors.orange, " ", colors.white)
+  end
+  if energyCap > 25 and energyCap <= 50 then
+    progressBarEnergy:setProgress(energyCap)
+    progressBarEnergy:setProgressBar(colors.yellow, " ", colors.white)
+  end
+  if energyCap > 50 and energyCap <= 100 then
+    progressBarEnergy:setProgress(energyCap)
+    progressBarEnergy:setProgressBar(colors.lime, " ", colors.white)
+  end
+  ----
+  rodLevelControl = rod
+  rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
+  progressBarRods:setProgress(rodLevelControl)
+
+  ----------- Stats Section -------------------
+
+  statsGen = lastRFT
+  genLabel2:setText(format(statsGen).."FE/t")
+
+  rfLost = lastRFT + storedLastTick - storedThisTick
+  statsDrain = rfLost
+  drainLabel2:setText(format(statsDrain).."FE/t")
+
+  statsBurn = fuelUsage
+  burnLabel2:setText(format(statsBurn).."B/t")
+
+  statsEff = lastRFT / fuelUsage
+  effLabel2:setText(format(statsEff).."FE/B")
+
+  statsWaste = waste
+  wasteLabel2:setText(format(statsWaste).."mB")
+
+  statsStored = energyStored
+  storedLabel2:setText(format(statsStored).."FE")
+
+end
+------------------------------------------------ 
+----------------- Auto Control -----------------
+--
+--  Checks if Capacity is at configured levels,
+--  and if so, turns on/off the reactor
+--
+function autoCheck()
+
+  -- Check whether to turn off reactor
+  if reactor.getActive() and autoPower then
+    if energyCap >= autoOffPerc then
+      reactor.setActive(false)
+    end
+  end
+  --check whether to turn on reactor
+  if not reactor.getActive() and autoPower then
+    if energyCap <= autoOnPerc then
+      reactor.setActive(true)
+    end
+  end
+
+end
+------------------------------------------------
 ---------- Testing out Graph Section -----------
 local graphPanel = sub[2]:addPane()
   :setBackground(colors.lightGray)
   :setSize("{parent.w - 4}","{parent.h - 17 - 7}")
   :setPosition(2, 23)
 local graphLabel = sub[2]:addLabel()
-  :setText(" Capacity Over Time: ")
+  :setText(" Efficiency Over Time: ")
   :setFontSize(1)
   :setPosition(4, 23)
   :setForeground(colors.white)
@@ -510,21 +683,24 @@ local aGraph = sub[2]:addGraph()
   :setGraphColor(colors.lime)
   :setBackground(colors.black)
    
+
+------------------------------------------------
+
 openSubFrame(2)
 
---local function getReactorStats()
---  while true do
---      energyCube = peripheral.find("ultimateEnergyCube")
---      if(energyCube~=nil)then
---          local energyCalculation = energyCube.getEnergy() / energyCube.getMaxEnergy() * 100
---          energyProgress:setProgress(energyCalculation)
---      else
---          energyProgress:setProgress(0)
---          os.sleep(3)
---      end
---     os.sleep(1)
---  end
---end
---main:addThread():start(getReactorStats)
+local function getReactorStats()
+  while true do
+      reactor = peripheral.find("BigReactors-Reactor")
+          if(reactor~=nil)then
+            reactorStats()
+            updateReactorStats()
+            autoCheck()
+          else
+            basalt.debug("Reactor not found")
+          end
+            os.sleep(1)
+   end
+end
+main:addThread():start(getReactorStats)
 
 basalt.autoUpdate()
