@@ -2,4 +2,7 @@
 CC:Tweaked scripts either developed or adapted for ATM9 modpack
 
 ## Extreme Reactor - CC:Tweaked Integration
-![](example1.png)
+
+![](images/extremereactor2.png)
+
+![](images/extremereactor1.png)
