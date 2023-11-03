@@ -11,6 +11,7 @@
 
 -- Local variables
 local version = 0.1
+local tag = "extremeReactorConfig.txt"
 local basalt = require("basalt")
 
 -- Peripherals
@@ -60,6 +61,21 @@ function format(num)
   end
 end
 
+--Saves the configuration of the reactor controller
+local function saveChanges()
+  local file = fs.open(tag, "w")
+  --autoOnPerc = 20
+  --autoOffPerc = 100
+  --autoPower = false
+  --autoRods = false
+  file.writeLine(autoOnPerc)
+  file.writeLine(autoOffPerc)
+  file.writeLine(rodLevelControl)
+  file.writeLine(autoPower)
+  file.writeLine(autoRods)
+  file.writeLine(reactor.getActive())
+  file.close()
+end
 ---------------- GUI Elements -----------------
 -----------------------------------------------
 
@@ -137,11 +153,13 @@ local function powerOptions(id)
         powerStatusLabel:setForeground(colors.red)
         powerStatusLabel:setText("OFFLINE")
         reactor.setActive(false)
+        saveChanges()
     end
     if check == "OFF" then
         powerStatusLabel:setForeground(colors.green)
         powerStatusLabel:setText("ONLINE")
         reactor.setActive(true)
+        saveChanges()
     end
 end
 
@@ -166,9 +184,11 @@ bMenubar = sub[2]:addMenubar()
 local function powerAutoOptions(id)
   if id == 1 then
     autoPower = true
+    saveChanges()
   end
   if id == 2 then
     autoPower = false
+    saveChanges()
   end
 end
 local powerAutoLabel = sub[2]:addLabel()
@@ -368,6 +388,7 @@ autoOnLButton:onClick(function(self,event,button,x,y)
     if autoOnPerc > 0 then
         autoOnPerc = autoOnPerc - 1
         autoOnInput:setText(autoOnPerc.."%")
+        saveChanges()
     end
   end
 end)
@@ -380,6 +401,7 @@ autoOnRButton:onClick(function(self,event,button,x,y)
     if autoOnPerc < 100 then
         autoOnPerc = autoOnPerc + 1
         autoOnInput:setText(autoOnPerc.."%")
+        saveChanges()
     end
   end
 end)
@@ -404,6 +426,7 @@ autoOffLButton:onClick(function(self,event,button,x,y)
     if autoOffPerc > 0 then
         autoOffPerc = autoOffPerc - 1
         autoOffInput:setText(autoOffPerc.."%")
+        saveChanges()
     end
   end
 end)
@@ -416,6 +439,7 @@ autoOffRButton:onClick(function(self,event,button,x,y)
     if autoOffPerc < 100 then
         autoOffPerc = autoOffPerc + 1
         autoOffInput:setText(autoOffPerc.."%")
+        saveChanges()
     end
   end
 end)
@@ -433,6 +457,7 @@ manRodLLButton:onClick(function(self,event,button,x,y)
         rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
         --progressBarRods:setProgress(rodLevelControl)
         reactor.setAllControlRodLevels(rodLevelControl)
+        saveChanges()
     end
   end
 end)
@@ -447,6 +472,7 @@ manRodLButton:onClick(function(self,event,button,x,y)
         rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
         --progressBarRods:setProgress(rodLevelControl)
         reactor.setAllControlRodLevels(rodLevelControl)
+        saveChanges()
     end
   end
 end)
@@ -469,6 +495,7 @@ manRodRButton:onClick(function(self,event,button,x,y)
         rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
         --progressBarRods:setProgress(rodLevelControl)
         reactor.setAllControlRodLevels(rodLevelControl)
+        saveChanges()
     end
   end
 end)
@@ -483,6 +510,7 @@ manRodRRButton:onClick(function(self,event,button,x,y)
         rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
         --progressBarRods:setProgress(rodLevelControl)
         reactor.setAllControlRodLevels(rodLevelControl)
+        saveChanges()
     end
   end
 end)
@@ -504,6 +532,7 @@ local function controlRodOptions(id)
       manRodLButton:show()
       manRodRButton:show()
       manRodRRButton:show()
+      saveChanges()
   end
 end
 
@@ -686,11 +715,63 @@ local aGraph = sub[2]:addGraph()
 
 ------------------------------------------------
 
+--Initialize variables from either a config file or the defaults
+local function initializeVars()
+  if (not fs.exists(tag)) then
+      basalt.debug("Config file "..tag.." not found, generating a default one!")
+      saveChanges()
+  else
+      local file = fs.open(tag, "r")
+      basalt.debug("Config file "..tag.." found! Using configurated settings")
+      --file.writeLine(autoOnPerc)
+      --file.writeLine(autoOffPerc)
+      --file.writeLine(rodLevelControl)
+      --file.writeLine(autoPower)
+      --file.writeLine(autoRods)
+      --file.writeLine(reactor.getActive())
+      autoOnPerc = tonumber(file.readLine())
+      autoOffPerc = tonumber(file.readLine())
+      rodLevelControl = tonumber(file.readLine())
+      autoPower = file.readLine() == "true"
+      autoRods = file.readLine() == "true"
+
+      autoOnInput:setText(autoOnPerc.."%")
+      autoOffInput:setText(autoOffPerc.."%")
+      rodLabel:setText("Rod Levels: "..tostring(rodLevelControl).."%")
+      progressBarRods:setProgress(rodLevelControl)
+      if autoPower then
+        dMenubar:selectItem(2)
+      else
+        dMenubar:selectItem(1)
+      end
+      if autoRods then
+        cMenubar:selectItem(2)
+      else
+        cMenubar:selectItem(1)
+      end
+
+      if file.readLine() == "true" then
+        reactor.setActive(true)
+        bMenubar:selectItem(2)
+      else
+        reactor.setActive(false)
+        bMenubar:selectItem(1)
+      end
+      file.close()
+      
+  end
+end
+--------- Main Execution Starts here -----------
 openSubFrame(2)
+reactor = peripheral.find("BigReactors-Reactor")
+if(reactor~=nil)then
+  initializeVars()
+else
+  basalt.debug("Reactor not found")
+end
 
 local function getReactorStats()
   while true do
-      reactor = peripheral.find("BigReactors-Reactor")
           if(reactor~=nil)then
             reactorStats()
             updateReactorStats()
